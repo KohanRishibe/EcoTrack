@@ -1,0 +1,4 @@
+# Baseline profile rules for EcoTrack startup path.
+# Regenerate with Macrobenchmark after profiling release builds.
+HSPLcom/ecotrack/EcoTrackApplication;-><init>()V
+HSPLcom/ecotrack/MainActivity;->onCreate(Landroid/os/Bundle;)V
