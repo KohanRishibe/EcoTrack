@@ -52,12 +52,25 @@ class DatabaseSeeder @Inject constructor() {
             )
             demoProducts.forEach { database.productDao().insert(it) }
 
-            listOf("Молоко", "Хлеб", "Яйца", "Сыр", "Бананы")
-                .forEachIndexed { index, name ->
-                    database.shoppingItemDao().insert(
-                        ShoppingItemEntity(name = name, isTemplate = true, sortOrder = index),
-                    )
-                }
+            val templates = listOf(
+                Triple("Молоко", ProductCategoryEntity.DAIRY, 1.0 to "л"),
+                Triple("Хлеб", ProductCategoryEntity.BAKERY, 1.0 to "шт"),
+                Triple("Яйца", ProductCategoryEntity.DAIRY, 10.0 to "шт"),
+                Triple("Сыр", ProductCategoryEntity.DAIRY, 200.0 to "г"),
+                Triple("Бананы", ProductCategoryEntity.FRUITS, 6.0 to "шт"),
+            )
+            templates.forEachIndexed { index, (name, category, qtyUnit) ->
+                database.shoppingItemDao().insert(
+                    ShoppingItemEntity(
+                        name = name,
+                        category = category,
+                        quantity = qtyUnit.first,
+                        unit = qtyUnit.second,
+                        isTemplate = true,
+                        sortOrder = index,
+                    ),
+                )
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package com.ecotrack.data.di
 import android.content.Context
 import androidx.room.Room
 import com.ecotrack.core.database.EcoTrackDatabase
+import com.ecotrack.core.database.dao.ConsumptionEventDao
 import com.ecotrack.core.database.dao.ProductDao
 import com.ecotrack.core.database.dao.ShoppingItemDao
 import com.ecotrack.data.seed.DatabaseSeeder
@@ -40,4 +41,8 @@ object DatabaseModule {
     @Provides
     fun provideShoppingItemDao(database: EcoTrackDatabase): ShoppingItemDao =
         database.shoppingItemDao()
+
+    @Provides
+    fun provideConsumptionEventDao(database: EcoTrackDatabase): ConsumptionEventDao =
+        database.consumptionEventDao()
 }

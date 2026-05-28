@@ -24,8 +24,8 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# ML Kit
--keep class com.google.mlkit.** { *; }
+# ML Kit — не блокировать R8
+-dontwarn com.google.mlkit.**
 
-# Domain models
+# Domain models (serialization / UI)
 -keep class com.ecotrack.domain.model.** { *; }

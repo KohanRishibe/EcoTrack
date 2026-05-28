@@ -27,6 +27,7 @@ data class ProductDetailUi(
     val categoryLabel: String,
     val expiryLabel: String,
     val quantityLabel: String,
+    val consumeStepLabel: String,
     val usedCount: Int,
     val wastedCount: Int,
     val canConsume: Boolean,
@@ -95,11 +96,13 @@ class ProductDetailViewModel @Inject constructor(
     }
 
     private fun consumeProduct(action: suspend () -> ProductConsumeResult) {
+        val stepLabel = (_uiState.value.content as? Resource.Success)
+            ?.data?.consumeStepLabel ?: "порцию"
         viewModelScope.launch {
             runCatching { action() }
                 .onSuccess { result ->
                     val message = when (result) {
-                        ProductConsumeResult.CONSUMED -> "Списано 1 ед. с запасов"
+                        ProductConsumeResult.CONSUMED -> "Списано $stepLabel"
                         ProductConsumeResult.DEPLETED_AND_REMOVED -> "Запас закончился — продукт удалён из списка"
                         ProductConsumeResult.ALREADY_EMPTY -> "Нечего списывать"
                     }

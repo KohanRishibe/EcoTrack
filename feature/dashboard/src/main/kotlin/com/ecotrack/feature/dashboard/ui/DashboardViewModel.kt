@@ -24,14 +24,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class CategoryStatUi(
+    val name: String,
+    val count: Int,
+    val fraction: Float,
+)
+
 data class DashboardContent(
-    val greeting: String,
-    val userName: String,
     val totalProducts: Int,
+    val totalUnits: Int,
     val expiringCount: Int,
+    val expiredCount: Int,
     val expiringItems: List<String>,
     val usedCount: Int,
     val wastedCount: Int,
+    val utilizationPercent: Int,
+    val categoryStats: List<CategoryStatUi>,
 )
 
 data class DashboardScreenUiState(

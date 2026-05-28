@@ -4,10 +4,13 @@ import com.ecotrack.core.database.dao.ProductDao
 import com.ecotrack.core.network.api.OpenFoodFactsApi
 import com.ecotrack.data.mapper.toDomain
 import com.ecotrack.data.mapper.toEntity
+import com.ecotrack.core.common.quantity.ProductQuantity
+import com.ecotrack.domain.model.ConsumptionEventType
+import com.ecotrack.domain.model.ConsumptionRecord
 import com.ecotrack.domain.model.Product
 import com.ecotrack.domain.model.ProductConsumeResult
+import com.ecotrack.domain.repository.ConsumptionRepository
 import com.ecotrack.domain.repository.ProductRepository
-import kotlin.math.min
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -19,6 +22,7 @@ import javax.inject.Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
     private val openFoodFactsApi: OpenFoodFactsApi,
+    private val consumptionRepository: ConsumptionRepository,
 ) : ProductRepository {
 
     override fun observeProducts(): Flow<List<Product>> =
@@ -61,8 +65,19 @@ class ProductRepositoryImpl @Inject constructor(
         val entity = productDao.getById(id) ?: return ProductConsumeResult.ALREADY_EMPTY
         if (entity.quantity <= 0) return ProductConsumeResult.ALREADY_EMPTY
 
-        val decrement = min(1.0, entity.quantity)
+        val decrement = ProductQuantity.consumeStep(entity.quantity, entity.unit)
         val newQuantity = entity.quantity - decrement
+        val product = entity.toDomain()
+
+        consumptionRepository.recordConsumption(
+            ConsumptionRecord(
+                productName = product.name,
+                category = product.category,
+                amount = decrement,
+                unit = product.unit,
+                eventType = if (wasted) ConsumptionEventType.WASTED else ConsumptionEventType.USED,
+            ),
+        )
 
         return if (newQuantity <= 0) {
             productDao.deleteById(id)

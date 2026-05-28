@@ -4,22 +4,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -29,9 +33,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ecotrack.core.common.quantity.ProductQuantity
+import com.ecotrack.core.design.components.ReceiptDashedDivider
+import com.ecotrack.core.design.components.ReceiptLineItem
+import com.ecotrack.core.design.components.ReceiptPaper
+import com.ecotrack.core.design.components.ReceiptTotalRow
+import com.ecotrack.core.design.components.EcoPillChip
+import com.ecotrack.core.design.theme.EcoReceiptFontFamily
+import com.ecotrack.core.design.theme.ReceiptInkMuted
 import com.ecotrack.core.ui.components.EcoResourceContent
 import com.ecotrack.core.ui.components.EcoShimmerList
 import com.ecotrack.core.ui.components.EcoSnackbarEffect
@@ -89,88 +102,143 @@ fun ShoppingListScreenContent(
         EcoResourceContent(
             resource = state.content,
             onRetry = onRefresh,
-            emptyMessage = "Корзина пуста — добавьте товары для похода в магазин",
+            emptyMessage = "Пустой чек — добавьте позиции ниже",
             isEmpty = { it.items.isEmpty() && it.templates.isEmpty() },
             loading = { EcoShimmerList() },
         ) { content ->
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Корзина",
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+                Text(
+                    text = "Соберите список в магазин. Купленное отмечайте на главной.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = state.newItemText,
+                        onValueChange = onNewItemTextChange,
+                        label = { Text("Новая позиция") },
+                        placeholder = { Text("Молоко, хлеб…") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        singleLine = true,
+                    )
+                    FilledTonalButton(
+                        onClick = onAddQuickItem,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                        shape = MaterialTheme.shapes.extraLarge,
                     ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
-                            Text("Сбор корзины", style = MaterialTheme.typography.titleMedium)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
                             Text(
-                                "Отметьте купленное на главном экране — товары попадут в запасы.",
-                                style = MaterialTheme.typography.bodySmall,
+                                text = "Добавить в чек",
+                                style = MaterialTheme.typography.labelLarge,
                             )
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = state.newItemText,
-                    onValueChange = onNewItemTextChange,
-                    label = { Text("Добавить в корзину") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                )
-                AssistChip(
-                    onClick = onAddQuickItem,
-                    label = { Text("Добавить") },
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .ecoTouchTarget(),
-                )
+
                 if (content.templates.isNotEmpty()) {
                     Text(
                         "Частые покупки",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        style = MaterialTheme.typography.titleSmall,
                     )
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         content.templates.forEach { template ->
-                            AssistChip(
+                            EcoPillChip(
+                                label = template.name,
                                 onClick = { onAddFromTemplate(template) },
-                                label = { Text(template.name) },
-                                modifier = Modifier.ecoTouchTarget(),
                             )
                         }
                     }
                 }
-                Text(
-                    "В корзине (${content.items.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
-                )
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+
+                ReceiptPaper(
+                    modifier = Modifier.fillMaxWidth(),
+                    storeSubtitle = "ЧЕК ПОКУПОК",
+                    footerLine = "Спасибо за осознанные покупки ♻",
                 ) {
-                    items(content.items, key = { it.id }) { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                    if (content.items.isEmpty()) {
+                        Text(
+                            text = "— пусто —",
+                            fontFamily = EcoReceiptFontFamily,
+                            color = ReceiptInkMuted,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .ecoTouchTarget(),
-                        ) {
-                            Text(
-                                item.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f),
-                            )
-                            IconButton(
-                                onClick = { onRemoveFromCart(item) },
-                                modifier = Modifier.ecoTouchTarget(),
+                                .padding(vertical = 24.dp),
+                        )
+                    } else {
+                        content.items.forEach { item ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top,
                             ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Убрать из корзины",
+                                ReceiptLineItem(
+                                    name = item.name.uppercase(),
+                                    detail = item.category.displayName,
+                                    trailing = ProductQuantity.formatQuantity(item.quantity, item.unit),
+                                    modifier = Modifier.weight(1f),
                                 )
+                                IconButton(
+                                    onClick = { onRemoveFromCart(item) },
+                                    modifier = Modifier.ecoTouchTarget(),
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Убрать из корзины",
+                                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                    )
+                                }
                             }
                         }
+                        ReceiptTotalRow(
+                            label = "ПОЗИЦИЙ",
+                            value = content.items.size.toString(),
+                            emphasized = true,
+                        )
+                        ReceiptDashedDivider(
+                            color = ReceiptInkMuted.copy(alpha = 0.4f),
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        Text(
+                            text = "Купленное отмечайте на главном экране",
+                            fontFamily = EcoReceiptFontFamily,
+                            fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                            color = ReceiptInkMuted,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                        )
                     }
                 }
             }

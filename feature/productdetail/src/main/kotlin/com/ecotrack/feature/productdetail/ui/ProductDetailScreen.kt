@@ -111,13 +111,18 @@ private fun ProductDetailBody(
         Card(shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Статистика", style = MaterialTheme.typography.titleMedium)
-                Text("Использовано: ${product.usedCount}")
-                Text("Выброшено: ${product.wastedCount}")
+                Text("С этой партии — использовано: ${product.usedCount}")
+                Text("С этой партии — выброшено: ${product.wastedCount}")
+                Text(
+                    "Общая статистика — на главной (журнал расхода)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         Text(
             text = if (product.canConsume) {
-                "Списание уменьшает остаток на 1. При нуле продукт удаляется из запасов."
+                "За одно нажатие списывается ${product.consumeStepLabel}. При нуле продукт удаляется из запасов."
             } else {
                 "Запас исчерпан"
             },
@@ -132,7 +137,7 @@ private fun ProductDetailBody(
                     .weight(1f)
                     .ecoTouchTarget(),
             ) {
-                Text("Использован (−1)")
+                Text("Использован")
             }
             OutlinedButton(
                 onClick = onWasted,
@@ -141,7 +146,7 @@ private fun ProductDetailBody(
                     .weight(1f)
                     .ecoTouchTarget(),
             ) {
-                Text("Выброшен (−1)")
+                Text("Выброшен")
             }
         }
         OutlinedButton(

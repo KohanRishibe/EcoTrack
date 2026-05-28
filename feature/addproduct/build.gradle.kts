@@ -7,6 +7,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.material.icons.core)
+}
+
+dependencies {
     implementation(libs.camera.core)
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)

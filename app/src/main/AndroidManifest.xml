@@ -17,13 +17,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EcoTrack">
-        <profileable
-            android:shell="true"
-            android:enabled="true" />
+        <!-- ML Kit: модели скачиваются через Play Services, не в APK -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode,ocr,ica" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.EcoTrack">
+            android:theme="@style/Theme.EcoTrack.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

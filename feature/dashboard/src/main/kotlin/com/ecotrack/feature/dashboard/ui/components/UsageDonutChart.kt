@@ -9,7 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.ecotrack.core.design.theme.EcoGreen
+import androidx.compose.material3.MaterialTheme
 import com.ecotrack.core.design.theme.ExpiryCritical
 
 @Composable
@@ -22,6 +22,7 @@ fun UsageDonutChart(
     val total = (used + wasted).coerceAtLeast(1)
     val usedSweep = 360f * used / total
     val wastedSweep = 360f * wasted / total
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Canvas(
         modifier = modifier.then(
@@ -38,7 +39,7 @@ fun UsageDonutChart(
         val arcSize = Size(diameter, diameter)
 
         drawArc(
-            color = EcoGreen,
+            color = primaryColor,
             startAngle = -90f,
             sweepAngle = usedSweep,
             useCenter = false,

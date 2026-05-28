@@ -13,6 +13,7 @@ import com.ecotrack.domain.model.ai.ProductPhotoInsight
 import com.ecotrack.domain.model.ai.ReceiptScanResult
 import com.ecotrack.domain.model.ai.SmartShoppingSuggestion
 import com.ecotrack.domain.repository.AiRepository
+import com.ecotrack.domain.repository.ProductCatalogRepository
 import com.ecotrack.domain.repository.ProductRepository
 import com.ecotrack.domain.repository.SettingsRepository
 import com.ecotrack.domain.repository.ShoppingRepository
@@ -29,7 +30,30 @@ class AiRepositoryImpl @Inject constructor(
     private val imageLabelingClient: ImageLabelingClient,
     private val textRecognitionClient: TextRecognitionClient,
     private val geminiNanoClassifier: GeminiNanoClassifier,
+    private val productCatalog: ProductCatalogRepository,
 ) : AiRepository {
+
+    private fun buildPhotoInsight(
+        name: String,
+        category: ProductCategory,
+        shelfDays: Int,
+        confidence: Float,
+        labels: List<String>,
+        source: AiSource,
+    ): ProductPhotoInsight {
+        val catalog = productCatalog.suggestFromName(name)
+        return ProductPhotoInsight(
+            suggestedName = name,
+            category = catalog.category,
+            suggestedQuantity = catalog.quantity,
+            suggestedUnit = catalog.unit,
+            suggestedShelfLifeDays = shelfDays,
+            suggestedExpiryDate = LocalDate.now().plusDays(shelfDays.toLong()),
+            confidence = confidence,
+            detectedLabels = labels,
+            source = source,
+        )
+    }
 
     override suspend fun recognizeProductFromPhoto(bitmap: Bitmap): ProductPhotoInsight? {
         val settings = settingsRepository.observeSettings().first()
@@ -37,13 +61,12 @@ class AiRepositoryImpl @Inject constructor(
 
         geminiNanoClassifier.suggestProductFromPhoto(bitmap)?.let { gemini ->
             val category = ProductCategory.fromRaw(gemini.categoryHint)
-            return ProductPhotoInsight(
-                suggestedName = gemini.productName,
+            return buildPhotoInsight(
+                name = gemini.productName,
                 category = category,
-                suggestedShelfLifeDays = gemini.shelfLifeDays,
-                suggestedExpiryDate = LocalDate.now().plusDays(gemini.shelfLifeDays.toLong()),
+                shelfDays = gemini.shelfLifeDays,
                 confidence = 0.9f,
-                detectedLabels = listOf("Gemini Nano"),
+                labels = listOf("Gemini Nano"),
                 source = AiSource.GEMINI_NANO,
             )
         }
@@ -55,13 +78,12 @@ class AiRepositoryImpl @Inject constructor(
         val (category, shelfDays) = CategoryLabelMapper.mapLabels(labelTexts)
         val topConfidence = labels.maxOf { it.confidence }
 
-        return ProductPhotoInsight(
-            suggestedName = CategoryLabelMapper.suggestName(labelTexts),
+        return buildPhotoInsight(
+            name = CategoryLabelMapper.suggestName(labelTexts),
             category = category,
-            suggestedShelfLifeDays = shelfDays,
-            suggestedExpiryDate = LocalDate.now().plusDays(shelfDays.toLong()),
+            shelfDays = shelfDays,
             confidence = topConfidence,
-            detectedLabels = labelTexts.take(5),
+            labels = labelTexts.take(5),
             source = AiSource.ML_KIT,
         )
     }

@@ -8,14 +8,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,7 +54,7 @@ fun EcoTrackNavHost() {
 
     val topLevelDestinations = listOf(
         TopLevelDestination(DashboardRoute, "Главная", Icons.Default.Home),
-        TopLevelDestination(InventoryRoute, "Запасы", Icons.Default.Inventory2),
+        TopLevelDestination(InventoryRoute, "Запасы", Icons.Default.List),
         TopLevelDestination(ShoppingListRoute, "Покупки", Icons.Default.ShoppingCart),
     )
 
@@ -62,7 +65,15 @@ fun EcoTrackNavHost() {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                val isDark = isSystemInDarkTheme()
+                val unselectedNavColor = if (isDark) {
+                    Color.White.copy(alpha = 0.7f)
+                } else {
+                    androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                }
+                NavigationBar(
+                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                ) {
                     topLevelDestinations.forEach { destination ->
                         val selected = currentDestination?.hierarchy?.any {
                             it.hasRoute(destination.route::class)
@@ -76,8 +87,19 @@ fun EcoTrackNavHost() {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(destination.icon, contentDescription = destination.label) },
+                            icon = {
+                                Icon(destination.icon, contentDescription = destination.label)
+                            },
                             label = { Text(destination.label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(
+                                    alpha = 0.14f,
+                                ),
+                                unselectedIconColor = unselectedNavColor,
+                                unselectedTextColor = unselectedNavColor,
+                            ),
                         )
                     }
                 }
@@ -89,7 +111,7 @@ fun EcoTrackNavHost() {
                     onClick = { navController.navigate(BarcodeScanRoute) },
                     shape = androidx.compose.foundation.shape.CircleShape,
                 ) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = "Сканировать штрихкод")
+                    Icon(Icons.Default.Search, contentDescription = "Сканировать штрихкод")
                 }
             }
         },
@@ -177,6 +199,8 @@ fun EcoTrackNavHost() {
                                 suggestedName = insight.suggestedName,
                                 suggestedCategory = insight.category.name,
                                 suggestedExpiryDate = insight.suggestedExpiryDate.toString(),
+                                suggestedQuantity = insight.suggestedQuantity.toString(),
+                                suggestedUnit = insight.suggestedUnit,
                             ),
                         ) {
                             popUpTo(PhotoRecognizeRoute) { inclusive = true }

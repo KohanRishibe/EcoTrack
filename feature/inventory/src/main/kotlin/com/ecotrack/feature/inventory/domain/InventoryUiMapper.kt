@@ -1,5 +1,6 @@
 package com.ecotrack.feature.inventory.domain
 
+import com.ecotrack.core.common.quantity.ProductQuantity
 import com.ecotrack.domain.model.Product
 import com.ecotrack.domain.model.ProductCategory
 import com.ecotrack.feature.inventory.ui.InventoryItemUi
@@ -14,7 +15,7 @@ fun Product.toUi(): InventoryItemUi = InventoryItemUi(
     categoryLabel = category.displayName,
     expiryDateLabel = expiryDate.format(dateFormatter),
     expiryDate = expiryDate,
-    quantityLabel = "${quantity.toInt()} ${unit}",
+    quantityLabel = ProductQuantity.formatQuantity(quantity, unit),
     imageUrl = imageUrl,
 )
 

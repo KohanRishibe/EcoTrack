@@ -6,6 +6,8 @@ import java.time.LocalDate
 data class ProductPhotoInsight(
     val suggestedName: String,
     val category: ProductCategory,
+    val suggestedQuantity: Double,
+    val suggestedUnit: String,
     val suggestedShelfLifeDays: Int,
     val suggestedExpiryDate: LocalDate,
     val confidence: Float,

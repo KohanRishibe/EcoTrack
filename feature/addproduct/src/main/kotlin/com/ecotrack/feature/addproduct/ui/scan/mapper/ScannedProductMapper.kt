@@ -1,5 +1,6 @@
 package com.ecotrack.feature.addproduct.ui.scan.mapper
 
+import com.ecotrack.core.common.quantity.ProductQuantity
 import com.ecotrack.domain.model.Product
 import com.ecotrack.feature.addproduct.ui.scan.ScannedProductCardUi
 import java.time.format.DateTimeFormatter
@@ -12,7 +13,7 @@ fun Product.toScannedProductCardUi(barcode: String): ScannedProductCardUi = Scan
     name = name,
     categoryLabel = category.displayName,
     expiryLabel = expiryDate.format(dateFormatter),
-    quantityLabel = "$quantity $unit",
+    quantityLabel = ProductQuantity.formatQuantity(quantity, unit),
 )
 
 // Suppress unused import fix - remove BarcodeScanViewModel import from ViewModel file

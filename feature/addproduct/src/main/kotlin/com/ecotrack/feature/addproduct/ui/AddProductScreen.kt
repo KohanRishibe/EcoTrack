@@ -2,6 +2,7 @@ package com.ecotrack.feature.addproduct.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,10 +11,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +26,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -34,11 +38,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ecotrack.core.common.quantity.ProductQuantity
 import com.ecotrack.core.ui.components.EcoSnackbarEffect
 import com.ecotrack.core.ui.components.EcoSnackbarHost
 import com.ecotrack.core.ui.util.ecoTouchTarget
@@ -88,7 +94,10 @@ fun AddProductScreen(
             onCategoryChange = viewModel::onCategoryChange,
             onQuantityChange = viewModel::onQuantityChange,
             onCategoryExpandedChange = viewModel::onCategoryExpandedChange,
+            onUnitChange = viewModel::onUnitChange,
+            onUnitExpandedChange = viewModel::onUnitExpandedChange,
             onShowDatePickerChange = viewModel::onShowDatePickerChange,
+            onApplyAiSuggestion = viewModel::applyAiSuggestionNow,
             onSave = viewModel::save,
             onExpiryDateChange = viewModel::onExpiryDateChange,
             onRecognizeByPhoto = onRecognizeByPhoto,
@@ -105,7 +114,10 @@ fun AddProductScreenContent(
     onCategoryChange: (ProductCategory) -> Unit,
     onQuantityChange: (String) -> Unit,
     onCategoryExpandedChange: (Boolean) -> Unit,
+    onUnitChange: (String) -> Unit,
+    onUnitExpandedChange: (Boolean) -> Unit,
     onShowDatePickerChange: (Boolean) -> Unit,
+    onApplyAiSuggestion: () -> Unit,
     onSave: () -> Unit,
     onExpiryDateChange: (java.time.LocalDate) -> Unit,
     onRecognizeByPhoto: () -> Unit = {},
@@ -122,7 +134,7 @@ fun AddProductScreenContent(
             onClick = onRecognizeByPhoto,
             modifier = Modifier.fillMaxWidth().ecoTouchTarget(),
         ) {
-            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+            Icon(Icons.Default.Add, contentDescription = null)
             Text("Распознать по фото (AI)", modifier = Modifier.padding(start = 8.dp))
         }
 
@@ -139,7 +151,41 @@ fun AddProductScreenContent(
             onValueChange = onNameChange,
             label = { Text("Название") },
             modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (state.isAiSuggesting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(end = 8.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            },
         )
+
+        state.aiHint?.let { hint ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null)
+                    Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
+                        Text(hint, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Можно изменить категорию, количество и единицу ниже",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    TextButton(onClick = onApplyAiSuggestion) {
+                        Text("Обновить")
+                    }
+                }
+            }
+        }
 
         ExposedDropdownMenuBox(
             expanded = state.categoryExpanded,
@@ -171,6 +217,53 @@ fun AddProductScreenContent(
             }
         }
 
+        Text(
+            "Количество и единица измерения",
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = state.quantity,
+                onValueChange = onQuantityChange,
+                label = { Text("Кол-во") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.weight(1f),
+            )
+            ExposedDropdownMenuBox(
+                expanded = state.unitExpanded,
+                onExpandedChange = onUnitExpandedChange,
+                modifier = Modifier.weight(1f),
+            ) {
+                OutlinedTextField(
+                    value = state.unit,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Ед.") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(state.unitExpanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                )
+                ExposedDropdownMenu(
+                    expanded = state.unitExpanded,
+                    onDismissRequest = { onUnitExpandedChange(false) },
+                ) {
+                    ProductQuantity.commonUnits.forEach { unit ->
+                        DropdownMenuItem(
+                            text = { Text(unit) },
+                            onClick = {
+                                onUnitChange(unit)
+                                onUnitExpandedChange(false)
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
         OutlinedTextField(
             value = state.expiryDate.toString(),
             onValueChange = {},
@@ -184,14 +277,6 @@ fun AddProductScreenContent(
         ) {
             Text("Выбрать дату")
         }
-
-        OutlinedTextField(
-            value = state.quantity,
-            onValueChange = onQuantityChange,
-            label = { Text("Количество") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth(),
-        )
 
         Button(
             onClick = onSave,

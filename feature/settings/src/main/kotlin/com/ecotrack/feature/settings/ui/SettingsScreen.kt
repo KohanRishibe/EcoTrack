@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -119,14 +118,6 @@ private fun SettingsForm(
     onOpenReceiptScan: () -> Unit,
 ) {
     Column {
-        OutlinedTextField(
-            value = settings.userName,
-            onValueChange = { onUpdate(settings.copy(userName = it)) },
-            label = { Text("Имя") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-        )
         SettingsSwitchRow(
             label = "Уведомления",
             checked = settings.notificationsEnabled,

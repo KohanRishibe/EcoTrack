@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ecotrack.core.design.theme.EcoTrackTheme
 import com.ecotrack.domain.model.UserSettings
@@ -13,6 +15,7 @@ import com.ecotrack.domain.usecase.settings.ObserveSettingsUseCase
 import com.ecotrack.navigation.EcoTrackNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -20,13 +23,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var observeSettings: ObserveSettingsUseCase
 
+    private var keepSplashOnScreen = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().setKeepOnScreenCondition { keepSplashOnScreen }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val settings by observeSettings()
                 .collectAsStateWithLifecycle(initialValue = UserSettings())
             val darkTheme = settings.darkTheme ?: isSystemInDarkTheme()
+
+            LaunchedEffect(Unit) {
+                delay(900)
+                keepSplashOnScreen = false
+            }
+
             EcoTrackTheme(
                 darkTheme = darkTheme,
                 dynamicColor = settings.useDynamicColor,

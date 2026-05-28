@@ -12,41 +12,48 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 private val LightColorScheme = lightColorScheme(
-    primary = EcoGreen,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
-    primaryContainer = EcoGreenLight,
-    onPrimaryContainer = EcoGreenDark,
-    secondary = EcoSand,
-    onSecondary = EcoGreenDark,
-    secondaryContainer = EcoCream,
-    onSecondaryContainer = EcoGreenDark,
-    background = EcoCream,
-    onBackground = EcoGreenDark,
-    surface = androidx.compose.ui.graphics.Color.White,
-    onSurface = EcoGreenDark,
-    surfaceVariant = EcoSand.copy(alpha = 0.3f),
-    onSurfaceVariant = EcoGreenDark,
+    primary = EcoPrimary,
+    onPrimary = EcoOnPrimary,
+    primaryContainer = EcoPrimary.copy(alpha = 0.2f),
+    onPrimaryContainer = EcoOnPrimary,
+    secondary = EcoAccentTeal,
+    onSecondary = Color.White,
+    secondaryContainer = EcoSurfaceVariantLight,
+    onSecondaryContainer = EcoOnSurfaceLight,
+    tertiary = EcoAccentAmber,
+    onTertiary = EcoOnSurfaceLight,
+    background = EcoBackgroundLight,
+    onBackground = EcoOnSurfaceLight,
+    surface = EcoSurfaceLight,
+    onSurface = EcoOnSurfaceLight,
+    surfaceVariant = EcoSurfaceVariantLight,
+    onSurfaceVariant = EcoOnSurfaceVariantLight,
+    outline = EcoOutlineLight,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = EcoMutedGreen,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
-    primaryContainer = EcoGreenDark,
-    onPrimaryContainer = EcoGreenLight,
-    secondary = EcoSand.copy(alpha = 0.7f),
-    onSecondary = EcoCream,
-    secondaryContainer = EcoDarkSurface,
-    onSecondaryContainer = EcoCream,
-    background = EcoDarkBackground,
-    onBackground = EcoCream,
-    surface = EcoDarkSurface,
-    onSurface = EcoCream,
-    surfaceVariant = EcoDarkSurface,
-    onSurfaceVariant = EcoSand,
+    primary = EcoPrimary,
+    onPrimary = EcoOnPrimary,
+    primaryContainer = EcoPrimary.copy(alpha = 0.22f),
+    onPrimaryContainer = EcoPrimary,
+    secondary = EcoAccentTeal,
+    onSecondary = EcoOnPrimary,
+    secondaryContainer = EcoSurfaceVariantDark,
+    onSecondaryContainer = EcoOnSurfaceDark,
+    tertiary = EcoAccentAmber,
+    onTertiary = EcoOnPrimary,
+    background = EcoBackgroundDark,
+    onBackground = EcoOnSurfaceDark,
+    surface = EcoSurfaceDark,
+    onSurface = EcoOnSurfaceDark,
+    surfaceVariant = EcoSurfaceVariantDark,
+    onSurfaceVariant = EcoOnSurfaceVariantDark,
+    outline = EcoOutlineDark,
 )
 
 @Immutable
@@ -56,21 +63,21 @@ data class EcoThemeConfig(
 )
 
 val LocalEcoThemeConfig = staticCompositionLocalOf {
-    EcoThemeConfig(useDynamicColor = true, darkTheme = false)
+    EcoThemeConfig(useDynamicColor = false, darkTheme = false)
 }
 
 val EcoShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(24.dp),
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(22.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 @Composable
 fun EcoTrackTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -84,7 +91,7 @@ fun EcoTrackTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = EcoTypography,
+        typography = ecoTypography(EcoFontFamily),
         shapes = EcoShapes,
         content = content,
     )

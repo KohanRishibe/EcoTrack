@@ -5,7 +5,7 @@ import com.ecotrack.domain.model.ProductCategory
 object CategoryLabelMapper {
 
     private val keywordToCategory = listOf(
-        listOf("milk", "cheese", "yogurt", "dairy", "молоко", "сыр", "йогурт", "творог") to ProductCategory.DAIRY,
+        listOf("milk", "cheese", "yogurt", "dairy", "молоко", "сыр", "йогурт", "творог", "яйц", "egg") to ProductCategory.DAIRY,
         listOf("vegetable", "tomato", "carrot", "cucumber", "овощ", "помидор", "морков", "огурец", "салат") to ProductCategory.VEGETABLES,
         listOf("meat", "chicken", "beef", "pork", "мясо", "куриц", "говядин", "свинин") to ProductCategory.MEAT,
         listOf("fruit", "apple", "banana", "orange", "фрукт", "яблок", "банан", "апельсин") to ProductCategory.FRUITS,
@@ -40,4 +40,18 @@ object CategoryLabelMapper {
 
     fun suggestName(labels: List<String>): String =
         labels.firstOrNull()?.replaceFirstChar { it.uppercase() } ?: "Продукт"
+
+    fun guessCategory(productName: String): ProductCategory =
+        mapLabels(listOf(productName.lowercase())).first
+
+    fun defaultQuantityAndUnit(category: ProductCategory): Pair<Double, String> = when (category) {
+        ProductCategory.DAIRY -> 1.0 to "шт"
+        ProductCategory.VEGETABLES -> 1.0 to "кг"
+        ProductCategory.MEAT -> 500.0 to "г"
+        ProductCategory.FRUITS -> 1.0 to "кг"
+        ProductCategory.BAKERY -> 1.0 to "шт"
+        ProductCategory.BEVERAGES -> 1.0 to "л"
+        ProductCategory.FROZEN -> 1.0 to "уп"
+        ProductCategory.OTHER -> 1.0 to "шт"
+    }
 }

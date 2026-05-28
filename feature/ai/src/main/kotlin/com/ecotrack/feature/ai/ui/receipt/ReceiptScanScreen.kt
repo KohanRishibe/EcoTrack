@@ -12,8 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -131,7 +131,7 @@ fun ReceiptScanScreen(
                                 .padding(16.dp)
                                 .ecoTouchTarget(),
                         ) {
-                            Icon(Icons.Default.CameraAlt, contentDescription = null)
+                            Icon(Icons.Default.Add, contentDescription = null)
                             Text("Сфотографировать чек", modifier = Modifier.padding(start = 8.dp))
                         }
                     }
@@ -165,7 +165,7 @@ private fun ReceiptItemsContent(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Default.Receipt, contentDescription = null)
+                Icon(Icons.Default.List, contentDescription = null)
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text("Найдено позиций: ${items.size}", style = MaterialTheme.typography.titleMedium)
                     Text(

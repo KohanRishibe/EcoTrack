@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ecotrack.core.database.dao.ProductDao
 import com.ecotrack.core.database.dao.ShoppingItemDao
@@ -35,10 +34,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun observeSettings(): Flow<UserSettings> = dataStore.data.map { prefs ->
         UserSettings(
-            userName = prefs[KEY_USER_NAME] ?: "Гость",
             notificationsEnabled = prefs[KEY_NOTIFICATIONS] ?: true,
             expiryReminderDays = prefs[KEY_EXPIRY_DAYS] ?: 3,
-            useDynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: true,
+            useDynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: false,
             darkTheme = prefs[KEY_DARK_THEME],
             aiPhotoRecognitionEnabled = prefs[KEY_AI_PHOTO] ?: true,
             aiSmartSuggestionsEnabled = prefs[KEY_AI_SMART] ?: true,
@@ -48,7 +46,6 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateSettings(settings: UserSettings) {
         dataStore.edit { prefs ->
-            prefs[KEY_USER_NAME] = settings.userName
             prefs[KEY_NOTIFICATIONS] = settings.notificationsEnabled
             prefs[KEY_EXPIRY_DAYS] = settings.expiryReminderDays
             prefs[KEY_DYNAMIC_COLOR] = settings.useDynamicColor
@@ -70,7 +67,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val settings = observeSettings().first()
         return buildString {
             appendLine("EcoTrack Export")
-            appendLine("Пользователь: ${settings.userName}")
             appendLine("Продуктов: ${products.size}")
             products.forEach { p ->
                 appendLine("- ${p.name} (${p.category.displayName}), до ${p.expiryDate}")
@@ -83,7 +79,6 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     companion object {
-        private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_NOTIFICATIONS = booleanPreferencesKey("notifications")
         private val KEY_EXPIRY_DAYS = intPreferencesKey("expiry_days")
         private val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")

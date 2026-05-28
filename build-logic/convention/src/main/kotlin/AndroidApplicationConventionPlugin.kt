@@ -16,6 +16,28 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 defaultConfig {
                     targetSdk = 35
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                    resourceConfigurations += listOf("ru", "en")
+                }
+
+                splits {
+                    abi {
+                        isEnable = true
+                        reset()
+                        include("armeabi-v7a", "arm64-v8a")
+                        isUniversalApk = false
+                    }
+                }
+
+                packaging {
+                    resources {
+                        excludes += setOf(
+                            "META-INF/DEPENDENCIES",
+                            "META-INF/LICENSE",
+                            "META-INF/LICENSE.txt",
+                            "META-INF/NOTICE",
+                            "META-INF/NOTICE.txt",
+                        )
+                    }
                 }
 
                 buildTypes {
@@ -26,6 +48,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                             getDefaultProguardFile("proguard-android-optimize.txt"),
                             "proguard-rules.pro",
                         )
+                    }
+                    debug {
+                        isMinifyEnabled = false
                     }
                 }
             }

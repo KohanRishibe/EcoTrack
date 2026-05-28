@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +35,7 @@ import com.ecotrack.core.common.result.Resource
 import com.ecotrack.core.ui.components.EcoSnackbarEffect
 import com.ecotrack.core.ui.components.EcoSnackbarHost
 import com.ecotrack.core.ui.util.ecoTouchTarget
+import com.ecotrack.core.common.quantity.ProductQuantity
 import com.ecotrack.domain.model.ai.AiSource
 import com.ecotrack.domain.model.ai.ProductPhotoInsight
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -104,7 +105,7 @@ fun PhotoRecognizeScreen(
                         .padding(16.dp)
                         .ecoTouchTarget(),
                 ) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Icon(Icons.Default.Add, contentDescription = null)
                     Text("Сфотографировать", modifier = Modifier.padding(start = 8.dp))
                 }
             }
@@ -145,6 +146,9 @@ private fun PhotoInsightCard(
             Text("Результат AI", style = MaterialTheme.typography.titleMedium)
             Text("Название: ${insight.suggestedName}")
             Text("Категория: ${insight.category.displayName}")
+            Text(
+                "Количество: ${ProductQuantity.formatQuantity(insight.suggestedQuantity, insight.suggestedUnit)}",
+            )
             Text("Срок хранения: ~${insight.suggestedShelfLifeDays} дн. (до ${insight.suggestedExpiryDate})")
             Text(
                 "Источник: ${if (insight.source == AiSource.GEMINI_NANO) "Gemini Nano" else "ML Kit"} · ${(insight.confidence * 100).toInt()}%",

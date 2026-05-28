@@ -1,6 +1,7 @@
 package com.ecotrack.core.database.converter
 
 import androidx.room.TypeConverter
+import com.ecotrack.core.database.model.ConsumptionEventTypeEntity
 import com.ecotrack.core.database.model.ProductCategoryEntity
 import java.time.Instant
 import java.time.LocalDate
@@ -30,4 +31,12 @@ class EcoTrackConverters {
     @TypeConverter
     fun toCategory(category: ProductCategoryEntity?): String? =
         category?.name
+
+    @TypeConverter
+    fun fromEventType(value: String?): ConsumptionEventTypeEntity? =
+        value?.let { runCatching { ConsumptionEventTypeEntity.valueOf(it) }.getOrDefault(ConsumptionEventTypeEntity.USED) }
+
+    @TypeConverter
+    fun toEventType(type: ConsumptionEventTypeEntity?): String? =
+        type?.name
 }

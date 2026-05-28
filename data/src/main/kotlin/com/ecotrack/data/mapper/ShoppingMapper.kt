@@ -6,6 +6,9 @@ import com.ecotrack.domain.model.ShoppingItem
 fun ShoppingItemEntity.toDomain(): ShoppingItem = ShoppingItem(
     id = id,
     name = name,
+    category = category.toDomain(),
+    quantity = quantity,
+    unit = unit,
     isChecked = isChecked,
     isTemplate = isTemplate,
 )
@@ -13,6 +16,9 @@ fun ShoppingItemEntity.toDomain(): ShoppingItem = ShoppingItem(
 fun ShoppingItem.toEntity(sortOrder: Int = 0): ShoppingItemEntity = ShoppingItemEntity(
     id = id,
     name = name,
+    category = category.toEntity(),
+    quantity = quantity,
+    unit = unit,
     isChecked = isChecked,
     isTemplate = isTemplate,
     sortOrder = sortOrder,

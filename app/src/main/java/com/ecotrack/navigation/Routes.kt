@@ -20,6 +20,8 @@ data class AddProductRoute(
     val suggestedName: String? = null,
     val suggestedCategory: String? = null,
     val suggestedExpiryDate: String? = null,
+    val suggestedQuantity: String? = null,
+    val suggestedUnit: String? = null,
 )
 
 @Serializable

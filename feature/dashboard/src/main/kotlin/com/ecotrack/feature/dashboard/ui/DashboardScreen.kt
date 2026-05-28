@@ -1,30 +1,21 @@
 package com.ecotrack.feature.dashboard.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ecotrack.core.common.quantity.ProductQuantity
 import com.ecotrack.core.ui.components.EcoResourceContent
 import com.ecotrack.core.ui.components.EcoShimmerDashboard
 import com.ecotrack.core.ui.components.EcoSnackbarEffect
@@ -49,7 +41,13 @@ import com.ecotrack.core.ui.components.EcoSnackbarHost
 import com.ecotrack.core.ui.util.ecoTouchTarget
 import com.ecotrack.domain.model.ShoppingItem
 import com.ecotrack.domain.model.ai.SmartShoppingSuggestion
-import com.ecotrack.feature.dashboard.ui.components.UsageDonutChart
+import com.ecotrack.core.design.components.EcoElevatedCard
+import com.ecotrack.core.design.components.ReceiptLineItem
+import com.ecotrack.core.design.components.ReceiptPaper
+import com.ecotrack.core.design.components.ReceiptTotalRow
+import com.ecotrack.feature.dashboard.ui.components.CategoryDistributionChart
+import com.ecotrack.feature.dashboard.ui.components.DashboardStatsGrid
+import com.ecotrack.feature.dashboard.ui.components.UsageOverviewCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,8 +107,6 @@ fun DashboardScreenContent(
             EcoResourceContent(
                 resource = state.content,
                 onRetry = onRefresh,
-                emptyMessage = "Добавьте продукты в запасы",
-                isEmpty = { it.totalProducts == 0 },
                 loading = { EcoShimmerDashboard() },
             ) { content ->
                 DashboardBody(
@@ -150,108 +146,139 @@ private fun DashboardBody(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn() + slideInVertically { it / 2 },
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "EcoTrack",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Обзор запасов",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier.ecoTouchTarget(),
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = content.greeting,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconButton(
-                            onClick = onOpenSettings,
-                            modifier = Modifier.ecoTouchTarget(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Открыть настройки",
-                            )
-                        }
-                    }
-                    Text(
-                        text = "В запасах ${content.totalProducts} продуктов",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(onClick = onOpenPhotoRecognize) {
-                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
-                            Text("По фото", modifier = Modifier.padding(start = 4.dp))
-                        }
-                        TextButton(onClick = onOpenReceiptScan) {
-                            Icon(Icons.Default.Receipt, contentDescription = null)
-                            Text("Чек", modifier = Modifier.padding(start = 4.dp))
-                        }
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Открыть настройки",
+                )
             }
         }
 
+        DashboardStatsGrid(
+            totalProducts = content.totalProducts,
+            totalUnits = content.totalUnits,
+            expiringCount = content.expiringCount,
+            expiredCount = content.expiredCount,
+            cartCount = cartItems.size,
+        )
+
+        if (content.totalProducts == 0) {
+            EcoElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Запасы пусты",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = "Добавьте продукты вручную, по фото или отметьте покупки в корзине ниже.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(onClick = onOpenPhotoRecognize) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Text("По фото", modifier = Modifier.padding(start = 4.dp))
+            }
+            TextButton(onClick = onOpenReceiptScan) {
+                Icon(Icons.Default.List, contentDescription = null)
+                Text("Чек", modifier = Modifier.padding(start = 4.dp))
+            }
+        }
+
+        if (content.categoryStats.isNotEmpty()) {
+            EcoElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Text("Запасы по категориям", style = MaterialTheme.typography.titleMedium)
+                CategoryDistributionChart(
+                    categories = content.categoryStats,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+        }
+
+        UsageOverviewCard(
+            used = content.usedCount,
+            wasted = content.wastedCount,
+            utilizationPercent = content.utilizationPercent,
+        )
+
         if (cartItems.isNotEmpty()) {
-            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Корзина покупок")
-                        Text(
-                            "Корзина (${cartItems.size})",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(start = 8.dp),
+            Text(
+                "Касса — отметьте купленное",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            ReceiptPaper(
+                modifier = Modifier.fillMaxWidth(),
+                storeSubtitle = "К ОПЛАТЕ",
+                footerLine = "✓ = куплено → в запасы",
+            ) {
+                cartItems.forEach { item ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .ecoTouchTarget(),
+                    ) {
+                        Checkbox(
+                            checked = false,
+                            onCheckedChange = { checked ->
+                                if (checked) onPurchaseCartItem(item.id)
+                            },
+                            enabled = purchasingItemId == null,
+                        )
+                        ReceiptLineItem(
+                            name = item.name.uppercase(),
+                            detail = item.category.displayName,
+                            trailing = ProductQuantity.formatQuantity(item.quantity, item.unit),
+                            modifier = Modifier.weight(1f),
                         )
                     }
-                    Text(
-                        "Отметьте купленное — товар попадёт в запасы и исчезнет из корзины.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    cartItems.forEach { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .ecoTouchTarget(),
-                        ) {
-                            Checkbox(
-                                checked = false,
-                                onCheckedChange = { checked ->
-                                    if (checked) onPurchaseCartItem(item.id)
-                                },
-                                enabled = purchasingItemId == null,
-                            )
-                            Text(
-                                item.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(start = 4.dp),
-                            )
-                        }
-                    }
                 }
+                ReceiptTotalRow(
+                    label = "К ОПЛАТЕ",
+                    value = "${cartItems.size} поз.",
+                    emphasized = true,
+                )
             }
         }
 
         if (smartSuggestions.isNotEmpty()) {
-            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            EcoElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                accentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = "Умные подсказки")
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = "Умные подсказки",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                         Text(
                             "Умные подсказки",
                             style = MaterialTheme.typography.titleMedium,
@@ -280,14 +307,11 @@ private fun DashboardBody(
         }
 
         if (content.expiringCount > 0) {
-            Card(
+            EcoElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
+                accentColor = MaterialTheme.colorScheme.error,
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Предупреждение о сроке годности",
@@ -307,30 +331,5 @@ private fun DashboardBody(
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text("Использовано / выброшено", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(16.dp))
-                UsageDonutChart(
-                    used = content.usedCount,
-                    wasted = content.wastedCount,
-                    modifier = Modifier.size(160.dp),
-                    contentDescription = "Диаграмма: использовано ${content.usedCount}, выброшено ${content.wastedCount}",
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Text("Использовано: ${content.usedCount}")
-                    Text("Выброшено: ${content.wastedCount}")
-                }
-            }
-        }
     }
 }
